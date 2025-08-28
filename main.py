@@ -14,7 +14,6 @@ def save(
         name: str = 'df',
         to_print: bool = True,
         styles_extended: None | list | dict = None,     # api/pandas.io.formats.style.Styler.set_table_styles.html
-        hyperlinks: None | str = 'html',                # api/pandas.io.formats.style.Styler.format.html
 ) -> str:
 
     if not isinstance(df, pd.DataFrame | pandas.io.formats.style.Styler):
@@ -29,10 +28,8 @@ def save(
 
     the_path = pl.Path(var_name if var_name.endswith('.html') else f'{var_name}.html')
 
-    the_style = df.style if isinstance(df, pd.DataFrame) else df
+    the_style = df.style.format(hyperlinks='html') if isinstance(df, pd.DataFrame) else df
     the_style = p01.set_jupyter_styles(the_style, styles_extended)
-
-    the_style.format(hyperlinks=hyperlinks)
 
     the_html = the_style.to_html()
     the_path.write_text(the_html)
@@ -65,6 +62,7 @@ if __name__ == '__main__':
     })
 
     the_df_style = the_df.style
+    the_df_style.format(hyperlinks='html')
 
     df2html.save(the_df_style)
     df2html.save(the_df.head(3), styles_extended=[{'selector': '', 'props': [('font-size', '10px')]}])
