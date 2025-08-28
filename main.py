@@ -11,7 +11,7 @@ import df2html.part_s.p01_set_styles as p01
 
 def save(
         df: pd.DataFrame | pandas.io.formats.style.Styler,
-        name: str = 'df',
+        name: str | None = None,
         to_print: bool = True,
         styles_extended: None | list | dict = None,     # api/pandas.io.formats.style.Styler.set_table_styles.html
 ) -> str:
@@ -20,18 +20,20 @@ def save(
         raise RuntimeError('df should be pd.DataFrame OR pandas.io.formats.style.Styler type')
 
     caller_frame = inspect.stack()[1]
-    _, var_name = p00.var_name_from_frame(
-        caller_frame=caller_frame,
-        trg=df,
-        default_name=name,
-    )
 
-    the_path = pl.Path(var_name if var_name.endswith('.html') else f'{var_name}.html')
+    if name is None:
+        _, name = p00.var_name_from_frame(
+            caller_frame=caller_frame,
+            trg=df,
+            default_name='df',
+        )
 
-    the_style = df.style.format(hyperlinks='html') if isinstance(df, pd.DataFrame) else df
-    the_style = p01.set_jupyter_styles(the_style, styles_extended)
+    the_path = pl.Path(name if name.endswith('.html') else f'{name}.html')
 
-    the_html = the_style.to_html()
+    style = df.style.format(hyperlinks='html') if isinstance(df, pd.DataFrame) else df
+    style = p01.set_jupyter_styles(style, styles_extended)
+
+    the_html = style.to_html()
     the_path.write_text(the_html)
 
     if to_print:
@@ -61,8 +63,8 @@ if __name__ == '__main__':
         'radius_km': [2440, 6052, 6371, 3390, 69911, 58232, 25362, 24622],
     })
 
-    the_df_style = the_df.style
-    the_df_style.format(hyperlinks='html')
+    the_style = the_df.style
+    the_style.format(hyperlinks='html')
+    df2html.save(the_style, name='df')
 
-    df2html.save(the_df_style)
     df2html.save(the_df.head(3), styles_extended=[{'selector': '', 'props': [('font-size', '10px')]}])
